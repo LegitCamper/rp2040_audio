@@ -162,11 +162,23 @@ mod rx_packet;
 #[cfg(feature = "rx-diagnostic")]
 const RX_COUNT: u32 = if cfg!(feature = "rx-stream") { 500 } else { 1 };
 
+/// Delivery accounting. `next` is the lowest payload index still acceptable,
+/// so duplicates and reordering are rejected in every mode. Hopping tolerates
+/// gaps because a missed event is normal RF loss, not desynchronisation;
+/// fixed-channel modes require `next` to advance one at a time. `delivered`
+/// doubles as the expected HCI sequence number, which counts accepted SDUs.
+#[cfg(feature = "rx-diagnostic")]
+#[derive(Default)]
+struct Progress {
+    delivered: u32,
+    next: u32,
+}
+
 // `Transport::read` hands back a parsed packet whose data load sits in the
 // caller's buffer, so the H4 wire form is rebuilt for the strict checker. The
 // round trip also proves the envelope the controller framed survives parsing.
 #[cfg(feature = "rx-diagnostic")]
-fn accept_rx(packet: &bt_hci::data::IsoPacket<'_>, count: &mut u32) -> Result<(), ()> {
+fn accept_rx(packet: &bt_hci::data::IsoPacket<'_>, progress: &mut Progress) -> Result<(), ()> {
     let mut wire = [0; 35];
     let written = {
         let mut tail = &mut wire[..];
@@ -176,17 +188,41 @@ fn accept_rx(packet: &bt_hci::data::IsoPacket<'_>, count: &mut u32) -> Result<()
         35 - tail.len()
     };
     let bytes = &wire[..written];
-    if *count >= RX_COUNT || !rx_packet::valid(bytes, *count as u16, cfg!(feature = "rx-stream")) {
+    // The marker's own event index is the only way to tell loss from
+    // desynchronisation, so it is read from the payload rather than assumed.
+    #[cfg(feature = "rx-hop")]
+    let index = if written == 35 {
+        u32::from(u16::from_le_bytes([bytes[9], bytes[10]]))
+    } else {
+        RX_COUNT
+    };
+    #[cfg(not(feature = "rx-hop"))]
+    let index = progress.next;
+    let payload = if cfg!(feature = "rx-stream") {
+        index as u16
+    } else {
+        0x0100
+    };
+    if index >= RX_COUNT
+        || index < progress.next
+        || !rx_packet::valid(bytes, progress.delivered as u16, payload)
+    {
         #[cfg(feature = "rx-stream")]
         defmt::error!(
             "EMBASSY_RX invalid packet={=[u8]:02x} expected-count={}",
             bytes,
-            count
+            progress.next
         );
         return Err(());
     }
-    *count += 1;
-    defmt::info!("EMBASSY_RX packet={=[u8]:02x} count={}", bytes, count);
+    progress.next = index + 1;
+    progress.delivered += 1;
+    defmt::info!(
+        "EMBASSY_RX packet={=[u8]:02x} count={} index={}",
+        bytes,
+        progress.delivered,
+        index
+    );
     Ok(())
 }
 
@@ -194,7 +230,7 @@ fn accept_rx(packet: &bt_hci::data::IsoPacket<'_>, count: &mut u32) -> Result<()
 async fn rx_command(
     driver: &cyw43::bluetooth::BtDriver<'_>,
     stop: bool,
-    count: &mut u32,
+    progress: &mut Progress,
 ) -> Result<(), ()> {
     use bt_hci::{cmd::info::ReadLocalVersionInformation, cmd::le::LeTestEnd};
     if stop {
@@ -209,7 +245,7 @@ async fn rx_command(
     loop {
         match driver.read::<ControllerToHostPacket>(&mut bytes).await.map_err(|_| ())? {
             ControllerToHostPacket::Iso(packet) => {
-                accept_rx(&packet, count)?;
+                accept_rx(&packet, progress)?;
             }
             ControllerToHostPacket::Event(event) if event.kind.0 == 0x0e => {
                 let valid = if stop {
@@ -239,7 +275,7 @@ async fn receive(driver: &cyw43::bluetooth::BtDriver<'_>) {
     defmt::info!("EMBASSY_RX ready channel=0 mhz=2404 interval-ms=0 window-ms=20000 mode=stream");
     #[cfg(feature = "rx-hop")]
     defmt::info!("EMBASSY_RX ready channel=csa2 channel-id=0xcf58 event-counter=0 interval-ms=0 window-ms=20000 mode=hop");
-    let mut count = 0;
+    let mut count = Progress::default();
     #[cfg(not(feature = "rx-stream"))]
     let result = async {
         for _ in 0..80 {
@@ -270,13 +306,25 @@ async fn receive(driver: &cyw43::bluetooth::BtDriver<'_>) {
         }
     }
     .await;
-    #[cfg(feature = "rx-stream")]
+    #[cfg(all(feature = "rx-stream", not(feature = "rx-hop")))]
     let window_ok = {
-        defmt::info!("EMBASSY_RX window-ended count={}", count);
-        count == RX_COUNT
+        defmt::info!("EMBASSY_RX window-ended count={}", count.delivered);
+        count.delivered == RX_COUNT
+    };
+    // Hopping reports span and loss instead of demanding every index: the host
+    // checker decides, and a silent or misaligned transmitter still yields zero.
+    #[cfg(feature = "rx-hop")]
+    let window_ok = {
+        defmt::info!(
+            "EMBASSY_RX window-ended count={} span={} lost={}",
+            count.delivered,
+            count.next,
+            count.next - count.delivered
+        );
+        count.delivered > 0
     };
     #[cfg(not(feature = "rx-stream"))]
-    let window_ok = true;
+    let window_ok = count.delivered == RX_COUNT;
     let stopped = with_timeout(Duration::from_secs(1), rx_command(driver, true, &mut count)).await
         == Ok(Ok(()));
     let stock_version = stopped
@@ -293,12 +341,12 @@ async fn receive(driver: &cyw43::bluetooth::BtDriver<'_>) {
         .is_err();
     defmt::info!(
         "EMBASSY_RX done count={} commands-ok={} stopped={} stock-version={} quiet={} pass={} restart_required=true",
-        count,
+        count.delivered,
         result.is_ok(),
         stopped,
         stock_version,
         quiet,
-        result.is_ok() && window_ok && count == RX_COUNT && stopped && stock_version && quiet
+        result.is_ok() && window_ok && stopped && stock_version && quiet
     );
 }
 

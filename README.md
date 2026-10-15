@@ -131,11 +131,30 @@ the transmitter one event ahead onto a different channel and must deliver
 nothing:
 
 ```sh
-python3 check-rx-capture.py hop.txt stock-restored.txt --stream --hop 0 --peer peer.txt
+python3 check-rx-capture.py hop.txt stock-restored.txt --stream --hop 0 --peer peer.txt --min-run 3
 python3 check-rx-capture.py offset.txt stock-restored.txt --stream --hop 1 --peer offset-peer.txt
 ```
 
-No live hopping run has been performed yet; only static and emulated checks.
+Hopping is judged by the longest run of consecutive transmitter event indices,
+not by the delivered total, because the open-loop counter only advances inside
+the receive callback. One missed event therefore leaves the receiver parked on
+a channel the transmitter has already left, and it only recovers when the
+sequences happen to coincide again. Delivered totals alone cannot separate that
+from chance: the offset control scored a comparable total with no consecutive
+run at all.
+
+Live Pico W evidence: `../cyw43_iso/work/embassy-normal-rx-hop-series/` and
+`-series-v2/`. A strict build that stopped at the first gap received 11
+consecutive events, 0..10, spanning nine distinct CSA#2 channels (1, 5, 7, 8,
+16, 25, 28, 29, 30), which a fixed-channel receiver cannot produce. The
+loss-tolerant build ran the full 20-second window and delivered 15 SDUs with a
+longest aligned run of 3; the one-event-offset transmitter delivered 16 with no
+run longer than 1, and the silent control delivered none. All three restored
+stock and passed both capability checks.
+
+Retuning works, but staying synchronised does not: there is no anchor, so loss
+is unrecoverable. A timer-driven event counter is required before this is a
+broadcast receiver.
 
 ## Build
 
