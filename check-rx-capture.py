@@ -13,7 +13,7 @@ HOP_READY = ("ready channel=csa2 channel-id=0xcf58 event-counter=0 interval-ms=0
              "window-ms=20000 mode=hop")
 TIMER_HOP_READY = ("ready channel=csa2 channel-id=0xcf58 event-counter=0 interval-ms=20 "
                    "window-ms=20000 mode=timer-hop "
-                   "preacquire=scan-per-countdown-callback")
+                   "preacquire=scan-per-countdown-callback rearm=stock-rx")
 PACKET = bytes.fromhex("0542201e0000001a00") + bytes(range(26))
 
 
@@ -78,7 +78,10 @@ def check(capture, stock, silent=False, bad_crc=False, peer=None, stream=False, 
         event_counter, channel, configurations, countdown, callbacks, advances, marker, scans = map(int, trace.groups())
         assert 1 <= countdown <= 32 and scans <= callbacks
         assert configurations == 1 + scans + marker + advances, "timer configuration count mismatch"
-        assert callbacks == scans + 32 * advances + (32 - countdown), "timer callback accounting mismatch"
+        # Callbacks dispatched while the event is not current are counted but
+        # perform no work, so they only bound the ticks that did work.
+        assert callbacks >= scans + 32 * advances + (32 - countdown), \
+            "timer callback accounting mismatch"
         if not marker:
             assert advances == 0 and countdown == 32, "unsynchronized timer advanced"
             assert event_counter == scans & 0xffff, "scan event counter mismatch"
@@ -280,6 +283,10 @@ def hop_self_check():
           timer_hop=True)
     timer_empty, _ = window([], timer=True)
     check(timer_empty, stock, silent=True, stream=True, hop=0, timer_hop=True)
+    # Ticks dispatched while the event was not current are counted but did no
+    # work, so a larger callback total stays consistent.
+    check(timer_complete.replace("callbacks=32048", "callbacks=32100"), stock,
+          peer=transmitter(0), stream=True, hop=0, min_run=500, timer_hop=True)
     invalid = [
         # Requiring a longer aligned run than the capture contains must fail.
         (stalled, transmitter(0), 0, 4),

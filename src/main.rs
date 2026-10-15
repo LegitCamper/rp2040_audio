@@ -326,7 +326,7 @@ async fn receive(
     );
     #[cfg(feature = "rx-timer-hop")]
     defmt::info!(
-        "EMBASSY_RX ready channel=csa2 channel-id=0xcf58 event-counter=0 interval-ms=20 window-ms=20000 mode=timer-hop preacquire=scan-per-countdown-callback"
+        "EMBASSY_RX ready channel=csa2 channel-id=0xcf58 event-counter=0 interval-ms=20 window-ms=20000 mode=timer-hop preacquire=scan-per-countdown-callback rearm=stock-rx"
     );
     let mut count = Progress::default();
     #[cfg(not(feature = "rx-stream"))]
