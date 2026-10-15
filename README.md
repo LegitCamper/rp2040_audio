@@ -156,6 +156,38 @@ Retuning works, but staying synchronised does not: there is no anchor, so loss
 is unrecoverable. A timer-driven event counter is required before this is a
 broadcast receiver.
 
+### Timer-driven hopping diagnostic
+
+`rx-timer-hop` uses the controller countdown callback as a persistent clock.
+Before marker acquisition, each accepted callback advances one CSA#2 candidate
+and retunes. A valid marker freezes that scan at the marker's event counter,
+resets a 32-callback phase, and starts one synchronized event advance per phase.
+This fast scan is diagnostic acquisition only; it is not BIGInfo-derived anchor
+synchronization, and the callback period is static firmware evidence rather than
+a controller-measured interval.
+
+The final trace reports accepted callbacks `A`, synchronized advances `V`,
+pre-acquisition scan retunes `S`, countdown `T`, marker state `M`, and channel
+configuration count `Q`. The checker requires:
+
+```text
+Q = 1 + S + M + V
+A = S + 32*V + (32-T)
+```
+
+Before acquisition it additionally requires `M=0`, `V=0`, `T=32`, `A=S`, and
+the 16-bit event counter equal to `S`. After acquisition the counter must equal
+the first delivered marker index plus `V`, modulo 65536. In both states the
+reported channel must equal CSA#2 for the reported counter. Live trace reads are
+not supported because callback writes can tear; the app stops the diagnostic
+before reading it.
+
+```sh
+cargo build --release --locked --features rx-timer-hop
+python3 check-rx-capture.py timer.txt stock-restored.txt \
+  --stream --hop 0 --timer-hop --peer peer.txt --min-run 3
+```
+
 ## Build
 
 Keep the sibling repositories at the paths above. The build references existing

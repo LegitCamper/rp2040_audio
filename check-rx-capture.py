@@ -12,7 +12,8 @@ READY = "ready channel=0 mhz=2404 interval-ms=250 window-ms=20000"
 HOP_READY = ("ready channel=csa2 channel-id=0xcf58 event-counter=0 interval-ms=0 "
              "window-ms=20000 mode=hop")
 TIMER_HOP_READY = ("ready channel=csa2 channel-id=0xcf58 event-counter=0 interval-ms=20 "
-                   "window-ms=20000 mode=timer-hop")
+                   "window-ms=20000 mode=timer-hop "
+                   "preacquire=scan-per-countdown-callback")
 PACKET = bytes.fromhex("0542201e0000001a00") + bytes(range(26))
 
 
@@ -56,6 +57,7 @@ def check(capture, stock, silent=False, bad_crc=False, peer=None, stream=False, 
     count = None if hop is not None else 0 if negative else 500 if stream else 1
     if count is not None:
         assert len(rx) == count + 2 + int(stream), "missing/duplicate/unexpected RX record"
+    timer_trace = None
     if timer_hop:
         ready = TIMER_HOP_READY
     elif hop is not None:
@@ -69,23 +71,23 @@ def check(capture, stock, silent=False, bad_crc=False, peer=None, stream=False, 
         assert len(traces) == 1 and rx[-1][0] < traces[0][0], "missing or early timer trace"
         trace = re.fullmatch(
             r"timer-trace event-counter=([0-9]+) channel=([0-9]+) configurations=([0-9]+) "
-            r"countdown=([0-9]+) callbacks=([0-9]+) advances=([0-9]+) marker-acquired=([01])",
+            r"countdown=([0-9]+) callbacks=([0-9]+) advances=([0-9]+) marker-acquired=([01]) "
+            r"scan-retunes=([0-9]+)",
             traces[0][1])
         assert trace, "malformed timer trace"
-        event_counter, channel, configurations, countdown, callbacks, advances, marker = map(int, trace.groups())
-        assert configurations == advances + 1 + marker and 1 <= countdown <= 32
-        cadence_excess = callbacks - (advances * 32 + (32 - countdown))
-        if marker:
-            assert 0 <= cadence_excess < 32, "timer cadence mismatch after marker acquisition"
-        else:
-            assert cadence_excess == 0, "timer cadence mismatch"
+        event_counter, channel, configurations, countdown, callbacks, advances, marker, scans = map(int, trace.groups())
+        assert 1 <= countdown <= 32 and scans <= callbacks
+        assert configurations == 1 + scans + marker + advances, "timer configuration count mismatch"
+        assert callbacks == scans + 32 * advances + (32 - countdown), "timer callback accounting mismatch"
         if not marker:
-            assert event_counter == advances & 0xffff, "timer event counter mismatch"
+            assert advances == 0 and countdown == 32, "unsynchronized timer advanced"
+            assert event_counter == scans & 0xffff, "scan event counter mismatch"
         if negative:
             assert marker == 0, "negative control acquired a marker"
         elif hop == 0:
             assert marker == 1, "aligned timer capture never acquired its marker"
         assert channel == csa2_first(event_counter), "timer channel mismatch"
+        timer_trace = (event_counter, advances, marker)
     else:
         assert not traces, "unexpected timer trace"
     if hop is not None:
@@ -120,6 +122,10 @@ def check(capture, stock, silent=False, bad_crc=False, peer=None, stream=False, 
             assert run >= min_run, f"longest consecutive run {run} below required {min_run}"
         if hop:
             assert run <= 1, "offset transmitter produced a consecutive run"
+        if timer_trace is not None and timer_trace[2]:
+            assert indices, "marker acquisition without delivered packet"
+            assert timer_trace[0] == (indices[0] + timer_trace[1]) & 0xffff, \
+                "timer event counter does not follow acquired marker"
     done = (f"done count={count} commands-ok=true stopped=true stock-version=true quiet=true "
             f"pass={'false' if count == 0 else 'true'} restart_required=true")
     assert rx[-1][1] == done, "RX exchange/stop/version/late-packet check failed"
@@ -229,8 +235,14 @@ def hop_self_check():
         trace = ""
         if timer:
             marker = int(bool(indices))
-            trace = (f"EMBASSY_RX timer-trace event-counter=1001 channel=23 configurations={1002 + marker} "
-                     f"countdown=16 callbacks=32048 advances=1001 marker-acquired={marker}\n")
+            if marker:
+                trace = ("EMBASSY_RX timer-trace event-counter=1001 channel=23 configurations=1003 "
+                         "countdown=16 callbacks=32048 advances=1001 marker-acquired=1 "
+                         "scan-retunes=0\n")
+            else:
+                trace = ("EMBASSY_RX timer-trace event-counter=32030 channel=35 configurations=32031 "
+                         "countdown=32 callbacks=32030 advances=0 marker-acquired=0 "
+                         "scan-retunes=32030\n")
         return (begin + "".join(records)
                 + f"EMBASSY_RX window-ended count={delivered} span={span} lost={span - delivered}\n"
                 + done + trace, records)
@@ -313,6 +325,7 @@ def hop_self_check():
         timer_complete.replace(" configurations=1003", " configurations=1002"),
         timer_complete.replace("countdown=16", "countdown=0"),
         timer_complete.replace("marker-acquired=1", "marker-acquired=0"),
+        timer_complete.replace("scan-retunes=0", "scan-retunes=1"),
     ):
         try:
             check(invalid_trace, stock, peer=transmitter(0), stream=True, hop=0,

@@ -16,13 +16,13 @@ rx-hop = ["rx-stream"]
 rx-timer-hop = ["rx-stream"]
 
 [dependencies]
-embassy-futures = { git = "https://github.com/LegitCamper/embassy", rev = "f7060ad8f91b4f7e47ede353398bc36304b5d366" }
-cyw43 = { git = "https://github.com/LegitCamper/embassy", rev = "f7060ad8f91b4f7e47ede353398bc36304b5d366", features = ["bluetooth-iso", "defmt"] }
-cyw43-pio = { git = "https://github.com/LegitCamper/embassy", rev = "f7060ad8f91b4f7e47ede353398bc36304b5d366" }
-cyw43-firmware = { git = "https://github.com/LegitCamper/embassy", rev = "f7060ad8f91b4f7e47ede353398bc36304b5d366" }
-embassy-rp = { git = "https://github.com/LegitCamper/embassy", rev = "f7060ad8f91b4f7e47ede353398bc36304b5d366", features = ["time-driver", "critical-section-impl"] }
-embassy-executor = { git = "https://github.com/LegitCamper/embassy", rev = "f7060ad8f91b4f7e47ede353398bc36304b5d366", features = ["platform-cortex-m", "executor-thread"] }
-embassy-time = { git = "https://github.com/LegitCamper/embassy", rev = "f7060ad8f91b4f7e47ede353398bc36304b5d366", features = ["defmt-timestamp-uptime"] }
+embassy-futures = { git = "https://github.com/LegitCamper/embassy", rev = "b696bb6e6485f2d686e6f0a83fcaea26c3c281e0" }
+cyw43 = { git = "https://github.com/LegitCamper/embassy", rev = "b696bb6e6485f2d686e6f0a83fcaea26c3c281e0", features = ["bluetooth-iso", "defmt"] }
+cyw43-pio = { git = "https://github.com/LegitCamper/embassy", rev = "b696bb6e6485f2d686e6f0a83fcaea26c3c281e0" }
+cyw43-firmware = { git = "https://github.com/LegitCamper/embassy", rev = "b696bb6e6485f2d686e6f0a83fcaea26c3c281e0" }
+embassy-rp = { git = "https://github.com/LegitCamper/embassy", rev = "b696bb6e6485f2d686e6f0a83fcaea26c3c281e0", features = ["time-driver", "critical-section-impl"] }
+embassy-executor = { git = "https://github.com/LegitCamper/embassy", rev = "b696bb6e6485f2d686e6f0a83fcaea26c3c281e0", features = ["platform-cortex-m", "executor-thread"] }
+embassy-time = { git = "https://github.com/LegitCamper/embassy", rev = "b696bb6e6485f2d686e6f0a83fcaea26c3c281e0", features = ["defmt-timestamp-uptime"] }
 bt-hci = "0.11"
 defmt = "1"
 defmt-rtt = { version = "1", features = ["disable-blocking-mode"] }

@@ -108,14 +108,15 @@ async fn main(_spawner: Spawner) {
     #[cfg(feature = "rx-timer-hop")]
     match installed.read_timer_hop_trace(&mut runner).await {
         Ok(trace) => defmt::info!(
-            "EMBASSY_RX timer-trace event-counter={} channel={} configurations={} countdown={} callbacks={} advances={} marker-acquired={}",
+            "EMBASSY_RX timer-trace event-counter={} channel={} configurations={} countdown={} callbacks={} advances={} marker-acquired={} scan-retunes={}",
             trace.event_counter,
             trace.current_channel,
             trace.config_count,
             trace.ticks_remaining,
             trace.accepted_callbacks,
             trace.completed_advances,
-            trace.marker_acquired
+            trace.marker_acquired,
+            trace.preacquisition_scan_retunes
         ),
         Err(error) => defmt::error!(
             "EMBASSY_RX timer-trace failed {:?}",
@@ -325,7 +326,7 @@ async fn receive(
     );
     #[cfg(feature = "rx-timer-hop")]
     defmt::info!(
-        "EMBASSY_RX ready channel=csa2 channel-id=0xcf58 event-counter=0 interval-ms=20 window-ms=20000 mode=timer-hop"
+        "EMBASSY_RX ready channel=csa2 channel-id=0xcf58 event-counter=0 interval-ms=20 window-ms=20000 mode=timer-hop preacquire=scan-per-countdown-callback"
     );
     let mut count = Progress::default();
     #[cfg(not(feature = "rx-stream"))]

@@ -289,7 +289,7 @@ dependencies = [
 [[package]]
 name = "cyw43"
 version = "0.7.0"
-source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+source = "git+https://github.com/LegitCamper/embassy?rev=b696bb6e6485f2d686e6f0a83fcaea26c3c281e0#b696bb6e6485f2d686e6f0a83fcaea26c3c281e0"
 dependencies = [
  "aligned",
  "bt-hci",
@@ -313,7 +313,7 @@ dependencies = [
 [[package]]
 name = "cyw43-controller"
 version = "0.1.0"
-source = "git+https://github.com/LegitCamper/cyw43-controller?rev=a8dc9627b8cff40426f6e114ade7cd28be1b9656#a8dc9627b8cff40426f6e114ade7cd28be1b9656"
+source = "git+https://github.com/LegitCamper/cyw43-controller?rev=20469e0a14f2ee3e97573bc2de9b8d082ea33843#20469e0a14f2ee3e97573bc2de9b8d082ea33843"
 dependencies = [
  "cyw43-controller-blob",
 ]
@@ -321,12 +321,12 @@ dependencies = [
 [[package]]
 name = "cyw43-controller-blob"
 version = "0.1.0"
-source = "git+https://github.com/LegitCamper/cyw43-controller?rev=a8dc9627b8cff40426f6e114ade7cd28be1b9656#a8dc9627b8cff40426f6e114ade7cd28be1b9656"
+source = "git+https://github.com/LegitCamper/cyw43-controller?rev=20469e0a14f2ee3e97573bc2de9b8d082ea33843#20469e0a14f2ee3e97573bc2de9b8d082ea33843"
 
 [[package]]
 name = "cyw43-firmware"
 version = "0.1.0"
-source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+source = "git+https://github.com/LegitCamper/embassy?rev=b696bb6e6485f2d686e6f0a83fcaea26c3c281e0#b696bb6e6485f2d686e6f0a83fcaea26c3c281e0"
 dependencies = [
  "aligned",
 ]
@@ -334,7 +334,7 @@ dependencies = [
 [[package]]
 name = "cyw43-pio"
 version = "0.10.0"
-source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+source = "git+https://github.com/LegitCamper/embassy?rev=b696bb6e6485f2d686e6f0a83fcaea26c3c281e0#b696bb6e6485f2d686e6f0a83fcaea26c3c281e0"
 dependencies = [
  "cyw43",
  "embassy-futures",
@@ -461,7 +461,7 @@ checksum = "0e9c71c2167ca323c882b99918929403426e2373ea17242ff5653e0d5e1058be"
 [[package]]
 name = "embassy-embedded-hal"
 version = "0.6.0"
-source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+source = "git+https://github.com/LegitCamper/embassy?rev=b696bb6e6485f2d686e6f0a83fcaea26c3c281e0#b696bb6e6485f2d686e6f0a83fcaea26c3c281e0"
 dependencies = [
  "embassy-futures",
  "embassy-hal-internal",
@@ -477,7 +477,7 @@ dependencies = [
 [[package]]
 name = "embassy-executor"
 version = "0.10.0"
-source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+source = "git+https://github.com/LegitCamper/embassy?rev=b696bb6e6485f2d686e6f0a83fcaea26c3c281e0#b696bb6e6485f2d686e6f0a83fcaea26c3c281e0"
 dependencies = [
  "cordyceps",
  "cortex-m",
@@ -490,7 +490,7 @@ dependencies = [
 [[package]]
 name = "embassy-executor-macros"
 version = "0.8.0"
-source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+source = "git+https://github.com/LegitCamper/embassy?rev=b696bb6e6485f2d686e6f0a83fcaea26c3c281e0#b696bb6e6485f2d686e6f0a83fcaea26c3c281e0"
 dependencies = [
  "darling",
  "proc-macro2",
@@ -501,17 +501,17 @@ dependencies = [
 [[package]]
 name = "embassy-executor-timer-queue"
 version = "0.1.0"
-source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+source = "git+https://github.com/LegitCamper/embassy?rev=b696bb6e6485f2d686e6f0a83fcaea26c3c281e0#b696bb6e6485f2d686e6f0a83fcaea26c3c281e0"
 
 [[package]]
 name = "embassy-futures"
 version = "0.1.2"
-source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+source = "git+https://github.com/LegitCamper/embassy?rev=b696bb6e6485f2d686e6f0a83fcaea26c3c281e0#b696bb6e6485f2d686e6f0a83fcaea26c3c281e0"
 
 [[package]]
 name = "embassy-hal-internal"
 version = "0.5.0"
-source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+source = "git+https://github.com/LegitCamper/embassy?rev=b696bb6e6485f2d686e6f0a83fcaea26c3c281e0#b696bb6e6485f2d686e6f0a83fcaea26c3c281e0"
 dependencies = [
  "cortex-m",
  "critical-section",
@@ -521,12 +521,12 @@ dependencies = [
 [[package]]
 name = "embassy-net-driver"
 version = "0.2.0"
-source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+source = "git+https://github.com/LegitCamper/embassy?rev=b696bb6e6485f2d686e6f0a83fcaea26c3c281e0#b696bb6e6485f2d686e6f0a83fcaea26c3c281e0"
 
 [[package]]
 name = "embassy-net-driver-channel"
 version = "0.4.0"
-source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+source = "git+https://github.com/LegitCamper/embassy?rev=b696bb6e6485f2d686e6f0a83fcaea26c3c281e0#b696bb6e6485f2d686e6f0a83fcaea26c3c281e0"
 dependencies = [
  "embassy-futures",
  "embassy-net-driver",
@@ -536,7 +536,7 @@ dependencies = [
 [[package]]
 name = "embassy-rp"
 version = "0.10.0"
-source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+source = "git+https://github.com/LegitCamper/embassy?rev=b696bb6e6485f2d686e6f0a83fcaea26c3c281e0#b696bb6e6485f2d686e6f0a83fcaea26c3c281e0"
 dependencies = [
  "cfg-if",
  "cortex-m",
@@ -588,7 +588,7 @@ dependencies = [
 [[package]]
 name = "embassy-sync"
 version = "0.8.0"
-source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+source = "git+https://github.com/LegitCamper/embassy?rev=b696bb6e6485f2d686e6f0a83fcaea26c3c281e0#b696bb6e6485f2d686e6f0a83fcaea26c3c281e0"
 dependencies = [
  "cfg-if",
  "critical-section",
@@ -601,7 +601,7 @@ dependencies = [
 [[package]]
 name = "embassy-time"
 version = "0.5.1"
-source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+source = "git+https://github.com/LegitCamper/embassy?rev=b696bb6e6485f2d686e6f0a83fcaea26c3c281e0#b696bb6e6485f2d686e6f0a83fcaea26c3c281e0"
 dependencies = [
  "cfg-if",
  "critical-section",
@@ -617,7 +617,7 @@ dependencies = [
 [[package]]
 name = "embassy-time-driver"
 version = "0.2.2"
-source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+source = "git+https://github.com/LegitCamper/embassy?rev=b696bb6e6485f2d686e6f0a83fcaea26c3c281e0#b696bb6e6485f2d686e6f0a83fcaea26c3c281e0"
 dependencies = [
  "document-features",
 ]
@@ -625,7 +625,7 @@ dependencies = [
 [[package]]
 name = "embassy-time-queue-utils"
 version = "0.3.2"
-source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+source = "git+https://github.com/LegitCamper/embassy?rev=b696bb6e6485f2d686e6f0a83fcaea26c3c281e0#b696bb6e6485f2d686e6f0a83fcaea26c3c281e0"
 dependencies = [
  "embassy-executor-timer-queue",
  "heapless 0.9.3",
@@ -634,7 +634,7 @@ dependencies = [
 [[package]]
 name = "embassy-usb-driver"
 version = "0.2.2"
-source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+source = "git+https://github.com/LegitCamper/embassy?rev=b696bb6e6485f2d686e6f0a83fcaea26c3c281e0#b696bb6e6485f2d686e6f0a83fcaea26c3c281e0"
 dependencies = [
  "embedded-io-async 0.6.1",
  "embedded-io-async 0.7.0",
