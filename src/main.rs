@@ -4,7 +4,7 @@
 #[cfg(not(feature = "rx-diagnostic"))]
 use bt_hci::FromHciBytes;
 #[cfg(feature = "rx-diagnostic")]
-use bt_hci::WriteHci;
+use bt_hci::transport::{PacketToController, WithIndicator};
 use bt_hci::{ControllerToHostPacket, transport::Transport};
 #[cfg(not(feature = "rx-diagnostic"))]
 use cyw43::iso::install as install_image;
@@ -126,7 +126,7 @@ async fn feed(driver: &cyw43::bluetooth::BtDriver<'_>) {
                 driver.write(&packet).await.map_err(|_| ())?;
                 sent += 1;
             }
-            match driver.read(&mut bytes).await.map_err(|_| ())? {
+            match driver.read::<ControllerToHostPacket>(&mut bytes).await.map_err(|_| ())? {
                 ControllerToHostPacket::Event(event)
                     if event.kind.0 == 0x13 && event.data.len() == 5 && event.data[0] == 1 =>
                 {
@@ -160,12 +160,21 @@ mod rx_packet;
 #[cfg(feature = "rx-diagnostic")]
 const RX_COUNT: u32 = if cfg!(feature = "rx-stream") { 500 } else { 1 };
 
+// `Transport::read` hands back a parsed packet whose data load sits in the
+// caller's buffer, so the H4 wire form is rebuilt for the strict checker. The
+// round trip also proves the envelope the controller framed survives parsing.
 #[cfg(feature = "rx-diagnostic")]
-fn accept_rx(packet_size: usize, bytes: &[u8], count: &mut u32) -> Result<(), ()> {
-    if packet_size != 34
-        || *count >= RX_COUNT
-        || !rx_packet::valid(bytes, *count as u16, cfg!(feature = "rx-stream"))
-    {
+fn accept_rx(packet: &bt_hci::data::IsoPacket<'_>, count: &mut u32) -> Result<(), ()> {
+    let mut wire = [0; 35];
+    let written = {
+        let mut tail = &mut wire[..];
+        WithIndicator::new(packet)
+            .write_hci(&mut tail)
+            .map_err(|_| ())?;
+        35 - tail.len()
+    };
+    let bytes = &wire[..written];
+    if *count >= RX_COUNT || !rx_packet::valid(bytes, *count as u16, cfg!(feature = "rx-stream")) {
         #[cfg(feature = "rx-stream")]
         defmt::error!(
             "EMBASSY_RX invalid packet={=[u8]:02x} expected-count={}",
@@ -196,9 +205,9 @@ async fn rx_command(
     }
     let mut bytes = [0; 35];
     loop {
-        match driver.read(&mut bytes).await.map_err(|_| ())? {
+        match driver.read::<ControllerToHostPacket>(&mut bytes).await.map_err(|_| ())? {
             ControllerToHostPacket::Iso(packet) => {
-                accept_rx(packet.size(), &bytes, count)?;
+                accept_rx(&packet, count)?;
             }
             ControllerToHostPacket::Event(event) if event.kind.0 == 0x0e => {
                 let valid = if stop {
@@ -247,10 +256,10 @@ async fn receive(driver: &cyw43::bluetooth::BtDriver<'_>) {
         let deadline = embassy_time::Instant::now() + Duration::from_secs(20);
         let mut bytes = [0; 35];
         loop {
-            match select(Timer::at(deadline), driver.read(&mut bytes)).await {
+            match select(Timer::at(deadline), driver.read::<ControllerToHostPacket>(&mut bytes)).await {
                 Either::First(()) => return Ok::<_, ()>(()),
                 Either::Second(Ok(ControllerToHostPacket::Iso(packet))) => {
-                    accept_rx(packet.size(), &bytes, &mut count)?;
+                    accept_rx(&packet, &mut count)?;
                 }
                 _ => return Err(()),
             }
@@ -275,7 +284,7 @@ async fn receive(driver: &cyw43::bluetooth::BtDriver<'_>) {
             == Ok(Ok(()));
     // Drain late packets after stop so duplicates/hardware errors cannot pass.
     let mut bytes = [0; 35];
-    let quiet = with_timeout(Duration::from_millis(250), driver.read(&mut bytes))
+    let quiet = with_timeout(Duration::from_millis(250), driver.read::<ControllerToHostPacket>(&mut bytes))
         .await
         .is_err();
     defmt::info!(

@@ -20,7 +20,7 @@ cyw43-pio = { path = "../embassy-cyw43-iso/cyw43-pio" }
 embassy-rp = { path = "../embassy-cyw43-iso/embassy-rp", features = ["time-driver", "critical-section-impl"] }
 embassy-executor = { path = "../embassy-cyw43-iso/embassy-executor", features = ["arch-cortex-m", "executor-thread"] }
 embassy-time = { path = "../embassy-cyw43-iso/embassy-time", features = ["defmt-timestamp-uptime"] }
-bt-hci = "0.7"
+bt-hci = "0.11"
 defmt = "1"
 defmt-rtt = { version = "1", features = ["disable-blocking-mode"] }
 panic-probe = { version = "1", features = ["print-defmt"] }

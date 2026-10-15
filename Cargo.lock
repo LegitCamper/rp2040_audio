@@ -109,10 +109,11 @@ dependencies = [
 
 [[package]]
 name = "bt-hci"
-version = "0.7.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38e6cb8de3a32f45e3c9736dc2b81f12fc386bf2690aec0855adca414cae3258"
+checksum = "0048816dbf43511d51f46514fada281890aa0190ada5170cf7bbb66259b611e7"
 dependencies = [
+ "bt-hci-transport",
  "btuuid",
  "defmt 1.1.1",
  "embassy-sync 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -120,6 +121,17 @@ dependencies = [
  "embedded-io-async 0.7.0",
  "futures-intrusive",
  "heapless 0.9.3",
+]
+
+[[package]]
+name = "bt-hci-transport"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2ffb9819c69cf88877f5eebc8c5ade0ab50f2bf9475bbb3eb714d66c55b0cb64"
+dependencies = [
+ "defmt 1.1.1",
+ "embedded-io 0.7.1",
+ "embedded-io-async 0.7.0",
 ]
 
 [[package]]
@@ -273,6 +285,7 @@ dependencies = [
  "bt-hci",
  "cortex-m",
  "cortex-m-rt",
+ "cyw43-controller-blob",
  "defmt 1.1.1",
  "embassy-futures",
  "embassy-net-driver-channel",
@@ -284,6 +297,10 @@ dependencies = [
  "futures",
  "heapless 0.9.3",
 ]
+
+[[package]]
+name = "cyw43-controller-blob"
+version = "0.1.0"
 
 [[package]]
 name = "cyw43-pio"
