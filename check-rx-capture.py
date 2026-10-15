@@ -11,6 +11,8 @@ csa2_first = runpy.run_path(str(CHECKER))["csa2_first"]
 READY = "ready channel=0 mhz=2404 interval-ms=250 window-ms=20000"
 HOP_READY = ("ready channel=csa2 channel-id=0xcf58 event-counter=0 interval-ms=0 "
              "window-ms=20000 mode=hop")
+TIMER_HOP_READY = ("ready channel=csa2 channel-id=0xcf58 event-counter=0 interval-ms=20 "
+                   "window-ms=20000 mode=timer-hop")
 PACKET = bytes.fromhex("0542201e0000001a00") + bytes(range(26))
 
 
@@ -25,10 +27,11 @@ def longest_run(indices):
     return best
 
 def check(capture, stock, silent=False, bad_crc=False, peer=None, stream=False, hop=None,
-          min_run=None):
+          min_run=None, timer_hop=False):
     """Returns (delivered, longest consecutive run) for hopping captures."""
     assert not (silent and bad_crc)
     assert stream or hop is None, "hop captures are stream captures"
+    assert not timer_hop or hop is not None, "timer-hop captures are hopping captures"
     # An open-loop counter that only advances inside the receive callback
     # stalls on a dead channel after any miss, so an offset transmitter still
     # scores chance coincidences. Alignment is therefore judged by the longest
@@ -44,20 +47,47 @@ def check(capture, stock, silent=False, bad_crc=False, peer=None, stream=False, 
     allocation = re.fullmatch(r"allocation=([0-9a-fA-F]{8})", native[1][1])
     assert allocation and 0x209BAC <= int(allocation[1], 16) <= 0x21DC00
     assert int(allocation[1], 16) % 4 == 0, "unaligned allocation"
+    traces = [(index, line.split("EMBASSY_RX ", 1)[1]) for index, line in enumerate(lines)
+              if "EMBASSY_RX timer-trace " in line]
     rx = [(index, line.split("EMBASSY_RX ", 1)[1]) for index, line in enumerate(lines)
-          if "EMBASSY_RX " in line]
+          if "EMBASSY_RX " in line and "EMBASSY_RX timer-trace " not in line]
     # Hopping tolerates RF loss, so its delivered total comes from the log and
     # alignment is judged by consecutive runs instead of a fixed count.
     count = None if hop is not None else 0 if negative else 500 if stream else 1
     if count is not None:
         assert len(rx) == count + 2 + int(stream), "missing/duplicate/unexpected RX record"
-    if hop is not None:
+    if timer_hop:
+        ready = TIMER_HOP_READY
+    elif hop is not None:
         ready = HOP_READY
     elif stream:
         ready = READY.replace("interval-ms=250", "interval-ms=0") + " mode=stream"
     else:
         ready = READY
     assert native[0][0] < native[1][0] < rx[0][0] and rx[0][1] == ready
+    if timer_hop:
+        assert len(traces) == 1 and rx[-1][0] < traces[0][0], "missing or early timer trace"
+        trace = re.fullmatch(
+            r"timer-trace event-counter=([0-9]+) channel=([0-9]+) configurations=([0-9]+) "
+            r"countdown=([0-9]+) callbacks=([0-9]+) advances=([0-9]+) marker-acquired=([01])",
+            traces[0][1])
+        assert trace, "malformed timer trace"
+        event_counter, channel, configurations, countdown, callbacks, advances, marker = map(int, trace.groups())
+        assert configurations == advances + 1 + marker and 1 <= countdown <= 32
+        cadence_excess = callbacks - (advances * 32 + (32 - countdown))
+        if marker:
+            assert 0 <= cadence_excess < 32, "timer cadence mismatch after marker acquisition"
+        else:
+            assert cadence_excess == 0, "timer cadence mismatch"
+        if not marker:
+            assert event_counter == advances & 0xffff, "timer event counter mismatch"
+        if negative:
+            assert marker == 0, "negative control acquired a marker"
+        elif hop == 0:
+            assert marker == 1, "aligned timer capture never acquired its marker"
+        assert channel == csa2_first(event_counter), "timer channel mismatch"
+    else:
+        assert not traces, "unexpected timer trace"
     if hop is not None:
         ended = re.fullmatch(r"window-ended count=([0-9]+) span=([0-9]+) lost=([0-9]+)", rx[-2][1])
         assert ended, "missing hopping window summary"
@@ -180,7 +210,6 @@ def stream_self_check():
 
 def hop_self_check():
     stock = "LMP subversion 0x2310\nRESULT: controller ISO support absent\n" * 2
-    begin = "EMBASSY_NATIVE begin\nEMBASSY_NATIVE allocation=00217e78\nEMBASSY_RX " + HOP_READY + "\n"
 
     def record(index, delivered):
         packet = bytearray(PACKET)
@@ -189,15 +218,22 @@ def hop_self_check():
         return ("EMBASSY_RX packet=[" + ", ".join(f"{byte:02x}" for byte in packet)
                 + f"] count={delivered} index={index}\n")
 
-    def window(indices):
+    def window(indices, timer=False):
+        ready = TIMER_HOP_READY if timer else HOP_READY
+        begin = "EMBASSY_NATIVE begin\nEMBASSY_NATIVE allocation=00217e78\nEMBASSY_RX " + ready + "\n"
         records = [record(index, position + 1) for position, index in enumerate(indices)]
         span = indices[-1] + 1 if indices else 0
         delivered = len(indices)
         done = (f"EMBASSY_RX done count={delivered} commands-ok=true stopped=true stock-version=true "
                 f"quiet=true pass={'true' if delivered else 'false'} restart_required=true\n")
+        trace = ""
+        if timer:
+            marker = int(bool(indices))
+            trace = (f"EMBASSY_RX timer-trace event-counter=1001 channel=23 configurations={1002 + marker} "
+                     f"countdown=16 callbacks=32048 advances=1001 marker-acquired={marker}\n")
         return (begin + "".join(records)
                 + f"EMBASSY_RX window-ended count={delivered} span={span} lost={span - delivered}\n"
-                + done, records)
+                + done + trace, records)
 
     payload = bytes(2) + bytes(range(2, 26))
 
@@ -227,6 +263,11 @@ def hop_self_check():
     check(scattered, stock, peer=transmitter(1), stream=True, hop=1)
     check(empty, stock, silent=True, stream=True, hop=0)
     check(empty, stock, bad_crc=True, peer=transmitter(0).replace("123401", "123400"), stream=True, hop=0)
+    timer_complete, _ = window(list(range(500)), timer=True)
+    check(timer_complete, stock, peer=transmitter(0), stream=True, hop=0, min_run=500,
+          timer_hop=True)
+    timer_empty, _ = window([], timer=True)
+    check(timer_empty, stock, silent=True, stream=True, hop=0, timer_hop=True)
     invalid = [
         # Requiring a longer aligned run than the capture contains must fail.
         (stalled, transmitter(0), 0, 4),
@@ -265,6 +306,20 @@ def hop_self_check():
         pass
     else:
         raise AssertionError("fixed-channel ready line accepted as hop")
+    for invalid_trace in (
+        timer_complete.replace("callbacks=32048", "callbacks=32047"),
+        timer_complete.replace("event-counter=1001", "event-counter=1000"),
+        timer_complete.replace("channel=23", "channel=22"),
+        timer_complete.replace(" configurations=1003", " configurations=1002"),
+        timer_complete.replace("countdown=16", "countdown=0"),
+        timer_complete.replace("marker-acquired=1", "marker-acquired=0"),
+    ):
+        try:
+            check(invalid_trace, stock, peer=transmitter(0), stream=True, hop=0,
+                  min_run=500, timer_hop=True)
+        except AssertionError:
+            continue
+        raise AssertionError("accepted invalid timer trace")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
@@ -277,6 +332,8 @@ if __name__ == "__main__":
     parser.add_argument("--stream", action="store_true", help="500 unique SDUs with autonomous controller task wake")
     parser.add_argument("--hop", type=int, choices=(0, 1), default=None,
                         help="open-loop CSA#2 receive window; 1 is the offset negative control")
+    parser.add_argument("--timer-hop", action="store_true",
+                        help="expect timer-driven hopping ready line and controller cadence trace")
     parser.add_argument("--min-run", type=int, default=None,
                         help="shortest acceptable run of consecutive transmitter event indices")
     args = parser.parse_args()
@@ -291,12 +348,14 @@ if __name__ == "__main__":
         parser.error("--hop requires --stream")
     if args.min_run is not None and args.hop is None:
         parser.error("--min-run requires --hop")
+    if args.timer_hop and args.hop is None:
+        parser.error("--timer-hop requires --hop")
     if args.bad_crc and (args.capture is None or args.peer is None):
         parser.error("--bad-crc requires capture, stock and --peer")
     if args.capture is not None:
         outcome = check(args.capture.read_text(), args.stock.read_text(), args.silent, args.bad_crc,
                         args.peer.read_text() if args.peer else None, args.stream, args.hop,
-                        args.min_run)
+                        args.min_run, args.timer_hop)
         if args.silent or args.bad_crc:
             print("Embassy RX passes: clean no-delivery control and external stock reset.")
         elif args.hop == 1:
@@ -305,7 +364,8 @@ if __name__ == "__main__":
                   f"coincidences and no consecutive run, with external stock reset.")
         elif args.hop == 0:
             delivered, run = outcome
-            print(f"Embassy RX passes: {delivered} hopping SDUs with a longest aligned run of "
+            mode = "timer-hopping" if args.timer_hop else "hopping"
+            print(f"Embassy RX passes: {delivered} {mode} SDUs with a longest aligned run of "
                   f"{run} consecutive events, and external stock reset.")
         else:
             print(f"Embassy RX passes: {500 if args.stream else 1} exact ISO SDUs through normal "
