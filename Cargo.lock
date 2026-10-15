@@ -108,6 +108,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "block-device-driver"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "44c051592f59fe68053524b4c4935249b806f72c1f544cfb7abe4f57c3be258e"
+dependencies = [
+ "aligned",
+]
+
+[[package]]
 name = "bt-hci"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -116,7 +125,7 @@ dependencies = [
  "bt-hci-transport",
  "btuuid",
  "defmt 1.1.1",
- "embassy-sync 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "embassy-sync 0.7.2",
  "embedded-io 0.7.1",
  "embedded-io-async 0.7.0",
  "futures-intrusive",
@@ -279,7 +288,8 @@ dependencies = [
 
 [[package]]
 name = "cyw43"
-version = "0.6.0"
+version = "0.7.0"
+source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
 dependencies = [
  "aligned",
  "bt-hci",
@@ -289,18 +299,21 @@ dependencies = [
  "defmt 1.1.1",
  "embassy-futures",
  "embassy-net-driver-channel",
- "embassy-sync 0.7.2",
+ "embassy-sync 0.8.0",
  "embassy-time",
  "embedded-hal 1.0.0",
  "embedded-hal-async",
  "embedded-io-async 0.7.0",
  "futures",
  "heapless 0.9.3",
+ "sdio",
+ "trait-set",
 ]
 
 [[package]]
 name = "cyw43-controller"
 version = "0.1.0"
+source = "git+https://github.com/LegitCamper/cyw43-controller?rev=a8dc9627b8cff40426f6e114ade7cd28be1b9656#a8dc9627b8cff40426f6e114ade7cd28be1b9656"
 dependencies = [
  "cyw43-controller-blob",
 ]
@@ -308,12 +321,23 @@ dependencies = [
 [[package]]
 name = "cyw43-controller-blob"
 version = "0.1.0"
+source = "git+https://github.com/LegitCamper/cyw43-controller?rev=a8dc9627b8cff40426f6e114ade7cd28be1b9656#a8dc9627b8cff40426f6e114ade7cd28be1b9656"
+
+[[package]]
+name = "cyw43-firmware"
+version = "0.1.0"
+source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+dependencies = [
+ "aligned",
+]
 
 [[package]]
 name = "cyw43-pio"
-version = "0.9.0"
+version = "0.10.0"
+source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
 dependencies = [
  "cyw43",
+ "embassy-futures",
  "embassy-rp",
  "fixed",
 ]
@@ -436,11 +460,12 @@ checksum = "0e9c71c2167ca323c882b99918929403426e2373ea17242ff5653e0d5e1058be"
 
 [[package]]
 name = "embassy-embedded-hal"
-version = "0.5.0"
+version = "0.6.0"
+source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
 dependencies = [
  "embassy-futures",
  "embassy-hal-internal",
- "embassy-sync 0.7.2",
+ "embassy-sync 0.8.0",
  "embedded-hal 0.2.7",
  "embedded-hal 1.0.0",
  "embedded-hal-async",
@@ -451,7 +476,8 @@ dependencies = [
 
 [[package]]
 name = "embassy-executor"
-version = "0.9.1"
+version = "0.10.0"
+source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
 dependencies = [
  "cordyceps",
  "cortex-m",
@@ -463,7 +489,8 @@ dependencies = [
 
 [[package]]
 name = "embassy-executor-macros"
-version = "0.7.0"
+version = "0.8.0"
+source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
 dependencies = [
  "darling",
  "proc-macro2",
@@ -474,14 +501,17 @@ dependencies = [
 [[package]]
 name = "embassy-executor-timer-queue"
 version = "0.1.0"
+source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
 
 [[package]]
 name = "embassy-futures"
 version = "0.1.2"
+source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
 
 [[package]]
 name = "embassy-hal-internal"
-version = "0.4.0"
+version = "0.5.0"
+source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
 dependencies = [
  "cortex-m",
  "critical-section",
@@ -491,19 +521,22 @@ dependencies = [
 [[package]]
 name = "embassy-net-driver"
 version = "0.2.0"
+source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
 
 [[package]]
 name = "embassy-net-driver-channel"
-version = "0.3.2"
+version = "0.4.0"
+source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
 dependencies = [
  "embassy-futures",
  "embassy-net-driver",
- "embassy-sync 0.7.2",
+ "embassy-sync 0.8.0",
 ]
 
 [[package]]
 name = "embassy-rp"
-version = "0.9.0"
+version = "0.10.0"
+source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
 dependencies = [
  "cfg-if",
  "cortex-m",
@@ -513,7 +546,7 @@ dependencies = [
  "embassy-embedded-hal",
  "embassy-futures",
  "embassy-hal-internal",
- "embassy-sync 0.7.2",
+ "embassy-sync 0.8.0",
  "embassy-time",
  "embassy-time-driver",
  "embassy-time-queue-utils",
@@ -529,24 +562,13 @@ dependencies = [
  "fixed",
  "nb 1.1.0",
  "pio",
+ "rand_core 0.10.1",
  "rand_core 0.6.4",
  "rand_core 0.9.5",
  "rp-pac",
  "rp2040-boot2",
  "sha2-const-stable",
- "smart-leds",
-]
-
-[[package]]
-name = "embassy-sync"
-version = "0.7.2"
-dependencies = [
- "cfg-if",
- "critical-section",
- "embedded-io-async 0.7.0",
- "futures-core",
- "futures-sink",
- "heapless 0.9.3",
+ "smart-leds-trait",
 ]
 
 [[package]]
@@ -564,8 +586,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "embassy-sync"
+version = "0.8.0"
+source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
+dependencies = [
+ "cfg-if",
+ "critical-section",
+ "embedded-io-async 0.7.0",
+ "futures-core",
+ "futures-sink",
+ "heapless 0.9.3",
+]
+
+[[package]]
 name = "embassy-time"
-version = "0.5.0"
+version = "0.5.1"
+source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
 dependencies = [
  "cfg-if",
  "critical-section",
@@ -580,14 +616,16 @@ dependencies = [
 
 [[package]]
 name = "embassy-time-driver"
-version = "0.2.1"
+version = "0.2.2"
+source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
 dependencies = [
  "document-features",
 ]
 
 [[package]]
 name = "embassy-time-queue-utils"
-version = "0.3.0"
+version = "0.3.2"
+source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
 dependencies = [
  "embassy-executor-timer-queue",
  "heapless 0.9.3",
@@ -595,8 +633,10 @@ dependencies = [
 
 [[package]]
 name = "embassy-usb-driver"
-version = "0.2.0"
+version = "0.2.2"
+source = "git+https://github.com/LegitCamper/embassy?rev=f7060ad8f91b4f7e47ede353398bc36304b5d366#f7060ad8f91b4f7e47ede353398bc36304b5d366"
 dependencies = [
+ "embedded-io-async 0.6.1",
  "embedded-io-async 0.7.0",
 ]
 
@@ -1262,6 +1302,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "76afc826de14238e6e8c374ddcc1fa19e374fd8dd986b0d2af0d02377261d83c"
 
 [[package]]
+name = "rand_core"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69"
+
+[[package]]
 name = "redox_syscall"
 version = "0.5.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1308,8 +1354,7 @@ checksum = "47b34b781b31e5d73e9fbc8689c70551fd1ade9a19e3e28cfec8580a79290cc4"
 [[package]]
 name = "rp-pac"
 version = "7.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8af65855c40b2c35079514c5489abffc0429347fef25d8467ff98ad84b4322d3"
+source = "git+https://github.com/embassy-rs/rp-pac?rev=c2e27609b021c444f634673155318977d7f0bdf6#c2e27609b021c444f634673155318977d7f0bdf6"
 dependencies = [
  "cortex-m",
  "cortex-m-rt",
@@ -1322,6 +1367,7 @@ dependencies = [
  "bt-hci",
  "cortex-m-rt",
  "cyw43",
+ "cyw43-firmware",
  "cyw43-pio",
  "defmt 1.1.1",
  "defmt-rtt",
@@ -1378,6 +1424,18 @@ name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
+
+[[package]]
+name = "sdio"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "02f8dcf75e0f6aeeda4819e3adea9a2c0705c2f109970abcc07edcfef372b68a"
+dependencies = [
+ "aligned",
+ "block-device-driver",
+ "embedded-hal 1.0.0",
+ "embedded-hal-async",
+]
 
 [[package]]
 name = "semver"
@@ -1438,15 +1496,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b3dc8af474f516a851ff4bd12db780f948b9250ad37211e4eec0bccea54e01b"
 
 [[package]]
-name = "smart-leds"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66df34e571fa9993fa6f99131a374d58ca3d694b75f9baac93458fe0d6057bf0"
-dependencies = [
- "smart-leds-trait",
-]
-
-[[package]]
 name = "smart-leds-trait"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1487,6 +1536,17 @@ name = "strsim"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
+
+[[package]]
+name = "syn"
+version = "1.0.109"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72b64191b275b66ffe2469e8af2c1cfe3bafa67b529ead792a6d0160888b4237"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "unicode-ident",
+]
 
 [[package]]
 name = "syn"
@@ -1616,6 +1676,17 @@ dependencies = [
  "tracing",
  "tracing-core",
  "tracing-log",
+]
+
+[[package]]
+name = "trait-set"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b79e2e9c9ab44c6d7c20d5976961b47e8f49ac199154daa514b77cd1ab536625"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
 ]
 
 [[package]]
