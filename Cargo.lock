@@ -285,7 +285,7 @@ dependencies = [
  "bt-hci",
  "cortex-m",
  "cortex-m-rt",
- "cyw43-controller-blob",
+ "cyw43-controller",
  "defmt 1.1.1",
  "embassy-futures",
  "embassy-net-driver-channel",
@@ -296,6 +296,13 @@ dependencies = [
  "embedded-io-async 0.7.0",
  "futures",
  "heapless 0.9.3",
+]
+
+[[package]]
+name = "cyw43-controller"
+version = "0.1.0"
+dependencies = [
+ "cyw43-controller-blob",
 ]
 
 [[package]]

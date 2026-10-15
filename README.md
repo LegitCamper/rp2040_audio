@@ -108,6 +108,35 @@ logging, not a controller ISO interval. This run was lossless; the checker
 would report any missing or duplicate packet, and lossless RF reception is not
 guaranteed in general.
 
+### Hopping receive window
+
+```sh
+cd ../cyw43_iso
+uv run --with unicorn python analysis/check-controller-rx.py --bis --iso --stream --hop --emulate --output-blob work/iso-blob-rx-hop
+cd ../rp2040_audio
+cargo build --release --locked --features rx-hop
+python3 check-rx-capture.py --stream --hop 0
+```
+
+`rx-hop` selects a separate 2048-byte patch with its own bootstrap, because
+allocators encode their reservation size. Every matching radio callback,
+including CRC failures, advances a 16-bit event counter once and retunes to the
+next CSA#2 channel after the stock callback has rearmed the radio. The counter
+starts at zero with no BIGInfo anchor, so this follows the sequence without
+synchronising to a live BIG.
+
+Drive it with `hardware/nrf54-dtm-rx`'s `marker-hop` transmitter, which walks
+the same sequence from channel identifier `0xcf58`. `marker-hop-offset` shifts
+the transmitter one event ahead onto a different channel and must deliver
+nothing:
+
+```sh
+python3 check-rx-capture.py hop.txt stock-restored.txt --stream --hop 0 --peer peer.txt
+python3 check-rx-capture.py offset.txt stock-restored.txt --stream --hop 1 --peer offset-peer.txt
+```
+
+No live hopping run has been performed yet; only static and emulated checks.
+
 ## Build
 
 Keep the sibling repositories at the paths above. The build references existing

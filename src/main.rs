@@ -10,8 +10,10 @@ use bt_hci::{ControllerToHostPacket, transport::Transport};
 use cyw43::iso::install as install_image;
 #[cfg(all(feature = "rx-diagnostic", not(feature = "rx-stream")))]
 use cyw43::iso::install_rx_diagnostic as install_image;
-#[cfg(feature = "rx-stream")]
+#[cfg(all(feature = "rx-stream", not(feature = "rx-hop")))]
 use cyw43::iso::install_rx_stream_diagnostic as install_image;
+#[cfg(feature = "rx-hop")]
+use cyw43::iso::install_rx_hop_diagnostic as install_image;
 #[cfg(feature = "rp2040")]
 use cyw43_pio::DEFAULT_CLOCK_DIVIDER as CLOCK_DIVIDER;
 use cyw43_pio::PioSpi;
@@ -233,8 +235,10 @@ async fn receive(driver: &cyw43::bluetooth::BtDriver<'_>) {
     // hopping before treating this as a negotiated broadcast receiver.
     #[cfg(not(feature = "rx-stream"))]
     defmt::info!("EMBASSY_RX ready channel=0 mhz=2404 interval-ms=250 window-ms=20000");
-    #[cfg(feature = "rx-stream")]
+    #[cfg(all(feature = "rx-stream", not(feature = "rx-hop")))]
     defmt::info!("EMBASSY_RX ready channel=0 mhz=2404 interval-ms=0 window-ms=20000 mode=stream");
+    #[cfg(feature = "rx-hop")]
+    defmt::info!("EMBASSY_RX ready channel=csa2 channel-id=0xcf58 event-counter=0 interval-ms=0 window-ms=20000 mode=hop");
     let mut count = 0;
     #[cfg(not(feature = "rx-stream"))]
     let result = async {

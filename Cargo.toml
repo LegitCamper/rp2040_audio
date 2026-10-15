@@ -12,6 +12,7 @@ rp2040 = ["embassy-rp/rp2040"]
 rp2350 = ["embassy-rp/rp235xa"]
 rx-diagnostic = []
 rx-stream = ["rx-diagnostic"]
+rx-hop = ["rx-stream"]
 
 [dependencies]
 embassy-futures = { path = "../embassy-cyw43-iso/embassy-futures" }
